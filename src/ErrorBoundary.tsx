@@ -1,4 +1,10 @@
 import React from 'react';
+import { translate, type LocaleCode } from './i18n';
+
+function storedLocale(): LocaleCode {
+  const v = localStorage.getItem('app-locale');
+  return v === 'en-US' || v === 'zh-CN' ? v : 'zh-CN';
+}
 
 interface State {
   hasError: boolean;
@@ -21,18 +27,19 @@ export default class ErrorBoundary extends React.Component<
 
   render() {
     if (this.state.hasError && this.state.error) {
+      const loc = storedLocale();
       return (
         <div
           style={{
             padding: 24,
             maxWidth: 640,
             margin: '40px auto',
-            background: '#fff',
+            background: 'var(--error-boundary-bg, #fff)',
             borderRadius: 8,
             boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
           }}
         >
-          <h2 style={{ color: '#cf1322', marginTop: 0 }}>页面出错了</h2>
+          <h2 style={{ color: '#cf1322', marginTop: 0 }}>{translate(loc, 'errorBoundary.title')}</h2>
           <pre
             style={{
               overflow: 'auto',
@@ -44,9 +51,7 @@ export default class ErrorBoundary extends React.Component<
           >
             {this.state.error.message}
           </pre>
-          <p style={{ color: '#666' }}>
-            请打开浏览器控制台（F12）查看完整错误信息，或尝试刷新页面。
-          </p>
+          <p style={{ color: '#666' }}>{translate(loc, 'errorBoundary.hint')}</p>
         </div>
       );
     }

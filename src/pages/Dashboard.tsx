@@ -1,12 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo, type ReactNode } from 'react';
 import { Card, Row, Col, List, Typography, Spin, Statistic, message } from 'antd';
 import { Link } from 'react-router-dom';
 import { api, type Product } from '../api/client';
 import { useQuery } from '@tanstack/react-query';
 import { WarningOutlined, InboxOutlined, ShoppingCartOutlined, DollarOutlined, DatabaseOutlined } from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
+import { getChartTheme } from '../theme/chartTokens';
+import { usePreferences } from '../context/PreferencesContext';
 
 export function Dashboard() {
+  const { t, themeMode } = usePreferences();
+  const isDark = themeMode === 'dark';
+  const c = useMemo(() => getChartTheme(isDark), [isDark]);
+
   const { data: alertsData, isLoading: alertsLoading } = useQuery<{ list: Product[] }>({
     queryKey: ['inventoryAlerts'],
     queryFn: () => api.inventory.alerts(),
@@ -27,37 +33,74 @@ export function Dashboard() {
 
   useEffect(() => {
     if (dashError) {
-      message.error(dashError instanceof Error ? dashError.message : '首页数据加载失败');
+      message.error(dashError instanceof Error ? dashError.message : t('dashboard.loadFailed'));
     }
-  }, [dashError]);
+  }, [dashError, t]);
 
   const dash = dashData ?? null;
   const alerts = alertsData?.list ?? [];
 
-  const chartOption = {
-    tooltip: { trigger: 'axis' },
-    legend: { data: ['采购', '销售'] },
-    grid: { left: 40, right: 20, top: 40, bottom: 30 },
-    xAxis: { type: 'category', data: (dash?.trend || []).map((t) => t.date.slice(5)) },
-    yAxis: { type: 'value' },
-    series: [
-      { name: '采购', type: 'line', smooth: true, data: (dash?.trend || []).map((t) => Number(t.purchase_total || 0)) },
-      { name: '销售', type: 'line', smooth: true, data: (dash?.trend || []).map((t) => Number(t.sales_total || 0)) },
-    ],
-  } as const;
+  const chartOption = useMemo(
+    () => ({
+      backgroundColor: 'transparent',
+      textStyle: { color: c.text },
+      tooltip: {
+        trigger: 'axis' as const,
+        backgroundColor: c.tooltipBg,
+        borderColor: c.tooltipBorder,
+        textStyle: { color: c.tooltipText, fontSize: 12 },
+      },
+      legend: { data: [t('chart.purchase'), t('chart.sales')], textStyle: { color: c.legend } },
+      grid: { left: 44, right: 24, top: 44, bottom: 32 },
+      xAxis: {
+        type: 'category' as const,
+        data: (dash?.trend || []).map((x) => x.date.slice(5)),
+        axisLine: { lineStyle: { color: c.axisLine } },
+        axisLabel: { color: c.axisLabel },
+        splitLine: { lineStyle: { color: c.splitLine } },
+      },
+      yAxis: {
+        type: 'value' as const,
+        axisLine: { lineStyle: { color: c.axisLine } },
+        axisLabel: { color: c.axisLabel },
+        splitLine: { lineStyle: { color: c.splitLine } },
+      },
+      series: [
+        {
+          name: t('chart.purchase'),
+          type: 'line' as const,
+          smooth: true,
+          lineStyle: { color: c.line1, width: 2 },
+          itemStyle: { color: c.line1Item },
+          areaStyle: { color: c.line1Area },
+          data: (dash?.trend || []).map((x) => Number(x.purchase_total || 0)),
+        },
+        {
+          name: t('chart.sales'),
+          type: 'line' as const,
+          smooth: true,
+          lineStyle: { color: c.line2, width: 2 },
+          itemStyle: { color: c.line2Item },
+          areaStyle: { color: c.line2Area },
+          data: (dash?.trend || []).map((x) => Number(x.sales_total || 0)),
+        },
+      ],
+    }),
+    [dash?.trend, c, t]
+  );
 
   return (
     <div>
-      <Typography.Title level={4}>首页</Typography.Title>
+      <Typography.Title level={4}>{t('dashboard.title')}</Typography.Title>
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} md={6}>
           <Link to="/products">
             <Card style={{ minHeight: 120 }}>
               <Row align="middle" justify="space-between">
-                <SpaceIcon icon={<InboxOutlined />} label="商品管理" />
+                <SpaceIcon icon={<InboxOutlined />} label={t('dashboard.cardProducts')} />
                 <Statistic value={dash?.products_count ?? '-'} />
               </Row>
-              <Typography.Text type="secondary">商品总数</Typography.Text>
+              <Typography.Text type="secondary">{t('dashboard.cardProductsSub')}</Typography.Text>
             </Card>
           </Link>
         </Col>
@@ -65,13 +108,15 @@ export function Dashboard() {
           <Link to="/purchases">
             <Card style={{ minHeight: 120 }}>
               <Row align="middle" justify="space-between">
-                <SpaceIcon icon={<ShoppingCartOutlined />} label="采购入库" />
+                <SpaceIcon icon={<ShoppingCartOutlined />} label={t('dashboard.cardPurchases')} />
                 <Statistic
                   value={dash?.purchase_today_total != null ? Number(dash.purchase_today_total).toFixed(0) : '-'}
-                  prefix="¥"
+                  prefix={t('common.currency')}
                 />
               </Row>
-              <Typography.Text type="secondary">今日 {dash?.purchase_today_count ?? '-'} 笔</Typography.Text>
+              <Typography.Text type="secondary">
+                {t('dashboard.cardPurchasesSub', { count: String(dash?.purchase_today_count ?? '-') })}
+              </Typography.Text>
             </Card>
           </Link>
         </Col>
@@ -79,13 +124,15 @@ export function Dashboard() {
           <Link to="/sales">
             <Card style={{ minHeight: 120 }}>
               <Row align="middle" justify="space-between">
-                <SpaceIcon icon={<DollarOutlined />} label="销售出库" />
+                <SpaceIcon icon={<DollarOutlined />} label={t('dashboard.cardSales')} />
                 <Statistic
                   value={dash?.sales_today_total != null ? Number(dash.sales_today_total).toFixed(0) : '-'}
-                  prefix="¥"
+                  prefix={t('common.currency')}
                 />
               </Row>
-              <Typography.Text type="secondary">今日 {dash?.sales_today_count ?? '-'} 笔</Typography.Text>
+              <Typography.Text type="secondary">
+                {t('dashboard.cardSalesSub', { count: String(dash?.sales_today_count ?? '-') })}
+              </Typography.Text>
             </Card>
           </Link>
         </Col>
@@ -93,33 +140,39 @@ export function Dashboard() {
           <Link to="/inventory">
             <Card style={{ minHeight: 120 }}>
               <Row align="middle" justify="space-between">
-                <SpaceIcon icon={<DatabaseOutlined />} label="库存" />
+                <SpaceIcon icon={<DatabaseOutlined />} label={t('dashboard.cardInventory')} />
                 <Statistic value={dash?.low_stock_count ?? '-'} />
               </Row>
-              <Typography.Text type="secondary">低库存预警数</Typography.Text>
+              <Typography.Text type="secondary">{t('dashboard.cardInventorySub')}</Typography.Text>
             </Card>
           </Link>
         </Col>
       </Row>
 
-      <Card title="近 7 天采购 / 销售趋势" style={{ marginTop: 16 }} loading={dashLoading}>
+      <Card title={t('dashboard.chartTitle')} style={{ marginTop: 16 }} loading={dashLoading}>
         <ReactECharts option={chartOption} style={{ height: 280 }} />
       </Card>
 
-      <Card title="低库存预警" style={{ marginTop: 24 }}>
+      <Card title={t('dashboard.alertsTitle')} style={{ marginTop: 24 }}>
         {alertsLoading ? (
           <Spin />
         ) : alerts.length === 0 ? (
-          <Typography.Text type="secondary">暂无低库存商品</Typography.Text>
+          <Typography.Text type="secondary">{t('dashboard.alertsEmpty')}</Typography.Text>
         ) : (
           <List
             dataSource={alerts}
             renderItem={(p) => (
               <List.Item>
-                <WarningOutlined style={{ color: '#faad14', marginRight: 8 }} />
-                {p.brand} {p.model} {p.size} — 当前库存 {p.stock_quantity}，预警线 {p.low_stock_threshold}
+                <WarningOutlined style={{ color: '#f59e0b', marginRight: 8 }} />
+                {t('dashboard.alertLine', {
+                  brand: p.brand,
+                  model: p.model,
+                  size: p.size,
+                  stock: String(p.stock_quantity),
+                  threshold: String(p.low_stock_threshold),
+                })}
                 <Link to="/inventory" style={{ marginLeft: 8 }}>
-                  查看库存
+                  {t('dashboard.viewInventory')}
                 </Link>
               </List.Item>
             )}
@@ -130,7 +183,7 @@ export function Dashboard() {
   );
 }
 
-function SpaceIcon({ icon, label }: { icon: React.ReactNode; label: string }) {
+function SpaceIcon({ icon, label }: { icon: ReactNode; label: string }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
       <span style={{ fontSize: 22, lineHeight: 1 }}>{icon}</span>

@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Table, Tabs, Input, Typography, Space } from 'antd';
 import { api, type Product, type InventoryLog } from '../api/client';
 import { useQuery } from '@tanstack/react-query';
+import { usePreferences } from '../context/PreferencesContext';
 
 export function Inventory() {
+  const { t } = usePreferences();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [logsPage, setLogsPage] = useState(1);
@@ -40,38 +42,74 @@ export function Inventory() {
     }
   };
 
-  const inventoryColumns = [
-    { title: '名称', dataIndex: 'name', key: 'name', width: 120 },
-    { title: '品牌', dataIndex: 'brand', key: 'brand', width: 90 },
-    { title: '型号', dataIndex: 'model', key: 'model', width: 90 },
-    { title: '规格', dataIndex: 'size', key: 'size', width: 100 },
-    { title: '当前库存', dataIndex: 'stock_quantity', key: 'stock_quantity', width: 90 },
-    { title: '预警线', dataIndex: 'low_stock_threshold', key: 'low_stock_threshold', width: 80 },
-    { title: '进价', dataIndex: 'cost_price', key: 'cost_price', width: 80, render: (v: number) => '¥' + Number(v).toFixed(2) },
-    { title: '售价', dataIndex: 'sale_price', key: 'sale_price', width: 80, render: (v: number) => '¥' + Number(v).toFixed(2) },
-  ];
+  const inventoryColumns = useMemo(
+    () => [
+      { title: t('inventory.colName'), dataIndex: 'name', key: 'name', width: 120 },
+      { title: t('inventory.colBrand'), dataIndex: 'brand', key: 'brand', width: 90 },
+      { title: t('inventory.colModel'), dataIndex: 'model', key: 'model', width: 90 },
+      { title: t('inventory.colSize'), dataIndex: 'size', key: 'size', width: 100 },
+      { title: t('inventory.colQty'), dataIndex: 'stock_quantity', key: 'stock_quantity', width: 90 },
+      { title: t('inventory.colLow'), dataIndex: 'low_stock_threshold', key: 'low_stock_threshold', width: 80 },
+      {
+        title: t('inventory.colCost'),
+        dataIndex: 'cost_price',
+        key: 'cost_price',
+        width: 80,
+        render: (v: number) => t('common.currency') + Number(v).toFixed(2),
+      },
+      {
+        title: t('inventory.colSale'),
+        dataIndex: 'sale_price',
+        key: 'sale_price',
+        width: 80,
+        render: (v: number) => t('common.currency') + Number(v).toFixed(2),
+      },
+    ],
+    [t]
+  );
 
-  const logColumns = [
-    { title: '时间', dataIndex: 'created_at', key: 'created_at', width: 180 },
-    { title: '商品', dataIndex: 'product_name', key: 'product_name', render: (_: unknown, r: InventoryLog) => `${r.product_name || ''} ${r.size || ''}`.trim() },
-    { title: '类型', dataIndex: 'type', key: 'type', width: 80, render: (v: string) => (v === 'in' ? '入库' : '出库') },
-    { title: '数量', dataIndex: 'quantity', key: 'quantity', width: 80 },
-    { title: '关联', dataIndex: 'ref_type', key: 'ref_type', width: 80, render: (v: string) => (v === 'purchase' ? '采购' : '销售') },
-  ];
+  const logColumns = useMemo(
+    () => [
+      { title: t('inventory.logTime'), dataIndex: 'created_at', key: 'created_at', width: 180 },
+      {
+        title: t('inventory.logProduct'),
+        dataIndex: 'product_name',
+        key: 'product_name',
+        render: (_: unknown, r: InventoryLog) => `${r.product_name || ''} ${r.size || ''}`.trim(),
+      },
+      {
+        title: t('inventory.logType'),
+        dataIndex: 'type',
+        key: 'type',
+        width: 80,
+        render: (v: string) => (v === 'in' ? t('inventory.typeIn') : t('inventory.typeOut')),
+      },
+      { title: t('inventory.logQty'), dataIndex: 'quantity', key: 'quantity', width: 80 },
+      {
+        title: t('inventory.logRef'),
+        dataIndex: 'ref_type',
+        key: 'ref_type',
+        width: 80,
+        render: (v: string) => (v === 'purchase' ? t('inventory.refPurchase') : t('inventory.refSales')),
+      },
+    ],
+    [t]
+  );
 
   return (
     <div>
-      <Typography.Title level={4}>库存</Typography.Title>
-      <Tabs onChange={onTabChange}
+      <Typography.Title level={4}>{t('inventory.title')}</Typography.Title>
+      <Tabs
+        onChange={onTabChange}
         items={[
           {
             key: 'stock',
-            label: '当前库存',
+            label: t('inventory.tabStock'),
             children: (
               <>
                 <Space style={{ marginBottom: 16 }}>
                   <Input.Search
-                    placeholder="搜索商品"
+                    placeholder={t('inventory.searchPh')}
                     value={search}
                     onChange={(e) => {
                       setSearch(e.target.value);
@@ -100,7 +138,7 @@ export function Inventory() {
           },
           {
             key: 'logs',
-            label: '库存流水',
+            label: t('inventory.tabLogs'),
             children: (
               <>
                 <Table

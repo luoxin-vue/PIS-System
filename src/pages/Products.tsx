@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Table, Button, Space, Input, Modal, Form, message, Typography } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { api, type Product } from '../api/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { usePreferences } from '../context/PreferencesContext';
 
 export function Products() {
+  const { t } = usePreferences();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -51,17 +53,17 @@ export function Products() {
   const deleteProductMutation = useMutation({
     mutationFn: (id: number) => api.products.delete(id),
     onSuccess: () => {
-      message.success('已删除');
+      message.success(t('products.deleted'));
       queryClient.invalidateQueries({ queryKey: ['products'] });
     },
   });
   const handleDelete = (id: number) => {
     Modal.confirm({
-      title: '确认删除该商品？',
+      title: t('products.deleteConfirm'),
       onOk: () =>
         deleteProductMutation.mutate(id, {
           onError: (e) => {
-            message.error(e instanceof Error ? e.message : '删除失败');
+            message.error(e instanceof Error ? e.message : t('products.deleteFailed'));
           },
         }),
     });
@@ -71,47 +73,68 @@ export function Products() {
     try {
       if (editing) {
         await api.products.update(editing.id, values as Partial<Product>);
-        message.success('已更新');
+        message.success(t('products.updated'));
       } else {
         await api.products.create(values as Partial<Product>);
-        message.success('已添加');
+        message.success(t('products.added'));
       }
       setModalOpen(false);
       queryClient.invalidateQueries({ queryKey: ['products'] });
     } catch (e: unknown) {
-      message.error(e instanceof Error ? e.message : '操作失败');
+      message.error(e instanceof Error ? e.message : t('products.opFailed'));
     }
   };
 
-  const columns = [
-    { title: '名称', dataIndex: 'name', key: 'name', width: 120 },
-    { title: '品牌', dataIndex: 'brand', key: 'brand', width: 100 },
-    { title: '型号', dataIndex: 'model', key: 'model', width: 100 },
-    { title: '规格', dataIndex: 'size', key: 'size', width: 100 },
-    { title: '进价', dataIndex: 'cost_price', key: 'cost_price', width: 80, render: (v: number) => '¥' + Number(v).toFixed(2) },
-    { title: '售价', dataIndex: 'sale_price', key: 'sale_price', width: 80, render: (v: number) => '¥' + Number(v).toFixed(2) },
-    { title: '库存', dataIndex: 'stock_quantity', key: 'stock_quantity', width: 80 },
-    { title: '预警线', dataIndex: 'low_stock_threshold', key: 'low_stock_threshold', width: 80 },
-    {
-      title: '操作',
-      key: 'action',
-      width: 120,
-      render: (_: unknown, r: Product) => (
-        <Space>
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openEdit(r)} />
-          <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(r.id)} />
-        </Space>
-      ),
-    },
-  ];
+  const columns = useMemo(
+    () => [
+      { title: t('products.colName'), dataIndex: 'name', key: 'name', width: 120 },
+      { title: t('products.colBrand'), dataIndex: 'brand', key: 'brand', width: 100 },
+      { title: t('products.colModel'), dataIndex: 'model', key: 'model', width: 100 },
+      { title: t('products.colSize'), dataIndex: 'size', key: 'size', width: 100 },
+      {
+        title: t('products.colCost'),
+        dataIndex: 'cost_price',
+        key: 'cost_price',
+        width: 80,
+        render: (v: number) => t('common.currency') + Number(v).toFixed(2),
+      },
+      {
+        title: t('products.colPrice'),
+        dataIndex: 'sale_price',
+        key: 'sale_price',
+        width: 80,
+        render: (v: number) => t('common.currency') + Number(v).toFixed(2),
+      },
+      { title: t('products.colStock'), dataIndex: 'stock_quantity', key: 'stock_quantity', width: 80 },
+      { title: t('products.colLow'), dataIndex: 'low_stock_threshold', key: 'low_stock_threshold', width: 80 },
+      {
+        title: t('products.colAction'),
+        key: 'action',
+        width: 120,
+        render: (_: unknown, r: Product) => (
+          <Space>
+            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openEdit(r)} />
+            <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(r.id)} />
+          </Space>
+        ),
+      },
+    ],
+    [t]
+  );
 
   return (
     <div>
-      <Typography.Title level={4}>商品管理</Typography.Title>
+      <Typography.Title level={4}>{t('products.title')}</Typography.Title>
       <Space style={{ marginBottom: 16 }}>
-        <Input.Search placeholder="搜索名称/品牌/型号/规格" value={search} onChange={(e) => setSearch(e.target.value)} onSearch={onSearch} style={{ width: 260 }} />
+        <Input.Search
+          placeholder={t('products.searchPh')}
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onSearch={onSearch}
+          style={{ width: 260 }}
+        />
         <Button type="primary" icon={<PlusOutlined />} onClick={openCreate}>
-          新增商品
+          {t('products.add')}
         </Button>
       </Space>
       <Table
@@ -128,7 +151,13 @@ export function Products() {
         }}
         scroll={{ x: 900 }}
       />
-      <Modal title={editing ? '编辑商品' : '新增商品'} open={modalOpen} onCancel={() => setModalOpen(false)} footer={null} destroyOnHidden>
+      <Modal
+        title={editing ? t('products.edit') : t('products.create')}
+        open={modalOpen}
+        onCancel={() => setModalOpen(false)}
+        footer={null}
+        destroyOnHidden
+      >
         <Form
           form={form}
           layout="horizontal"
@@ -136,33 +165,33 @@ export function Products() {
           wrapperCol={{ xs: { span: 24 }, sm: { span: 18 } }}
           onFinish={onFinish}
         >
-          <Form.Item name="name" label="名称" rules={[{ required: true }]}>
+          <Form.Item name="name" label={t('products.colName')} rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="brand" label="品牌" rules={[{ required: true }]}>
+          <Form.Item name="brand" label={t('products.colBrand')} rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="model" label="型号" rules={[{ required: true }]}>
+          <Form.Item name="model" label={t('products.colModel')} rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="size" label="规格" rules={[{ required: true }]}>
-            <Input placeholder="如 205/55R16" />
+          <Form.Item name="size" label={t('products.colSize')} rules={[{ required: true }]}>
+            <Input placeholder={t('products.sizePh')} />
           </Form.Item>
-          <Form.Item name="cost_price" label="进价" initialValue={0}>
+          <Form.Item name="cost_price" label={t('products.labelCost')} initialValue={0}>
             <Input type="number" step={0.01} />
           </Form.Item>
-          <Form.Item name="sale_price" label="售价" initialValue={0}>
+          <Form.Item name="sale_price" label={t('products.labelPrice')} initialValue={0}>
             <Input type="number" step={0.01} />
           </Form.Item>
-          <Form.Item name="stock_quantity" label="库存数量" initialValue={0}>
+          <Form.Item name="stock_quantity" label={t('products.labelStock')} initialValue={0}>
             <Input type="number" />
           </Form.Item>
-          <Form.Item name="low_stock_threshold" label="低库存预警线" initialValue={0}>
+          <Form.Item name="low_stock_threshold" label={t('products.labelLow')} initialValue={0}>
             <Input type="number" />
           </Form.Item>
           <Form.Item wrapperCol={{ xs: { span: 24 }, sm: { span: 18, offset: 6 } }}>
             <Button type="primary" htmlType="submit">
-              保存
+              {t('products.save')}
             </Button>
           </Form.Item>
         </Form>
