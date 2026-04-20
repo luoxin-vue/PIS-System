@@ -1,6 +1,6 @@
-# PIS-System（前端）
+# PIS-System
 
-Vite + React + TypeScript + Ant Design 的进销存前端。
+进销存系统 — 前端（Vite + React + TypeScript + Ant Design）。
 
 ## 开发
 
