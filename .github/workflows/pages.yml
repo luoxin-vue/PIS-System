@@ -1,0 +1,50 @@
+# 构建并部署到 GitHub Pages（项目站：https://luoxin-vue.github.io/PIS-System/）
+# 仓库 Settings → Pages → Build and deployment：Source 选 “GitHub Actions”
+# 若后端不在同域，在 Settings → Secrets and variables → Actions → Variables 添加 VITE_API_BASE（例如 https://your-api.example.com/api）
+
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - name: Build
+        env:
+          VITE_BASE_PATH: /PIS-System/
+          VITE_API_BASE: ${{ vars.VITE_API_BASE }}
+        run: npm run build
+      - name: SPA fallback for GitHub Pages
+        run: cp dist/index.html dist/404.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

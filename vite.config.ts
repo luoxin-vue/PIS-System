@@ -18,6 +18,8 @@ function fullReloadOnSrcChange(): import('vite').Plugin {
 }
 
 export default defineConfig({
+  // 本地开发为 `/`；CI 构建 GitHub Pages 时设置 VITE_BASE_PATH=/PIS-System/
+  base: process.env.VITE_BASE_PATH || '/',
   plugins: [fullReloadOnSrcChange(), react()],
   resolve: {
     alias: { '@': path.resolve(__dirname, 'src') },

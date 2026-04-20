@@ -1,4 +1,8 @@
-const API_BASE = '/api';
+// 本地通过 Vite 代理使用 `/api`；GitHub Pages 上在构建时注入 VITE_API_BASE（完整前缀，勿尾斜杠）
+const API_BASE =
+  import.meta.env.VITE_API_BASE != null && String(import.meta.env.VITE_API_BASE).trim() !== ''
+    ? String(import.meta.env.VITE_API_BASE).replace(/\/$/, '')
+    : '/api';
 
 function getToken(): string | null {
   return localStorage.getItem('token');

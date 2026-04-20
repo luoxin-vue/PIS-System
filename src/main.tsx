@@ -9,6 +9,7 @@ import { ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 
 const queryClient = new QueryClient();
+const routerBasename = import.meta.env.BASE_URL.replace(/\/$/, '');
 const zhValidateMessages = {
   required: '${label}不能为空',
   types: {
@@ -25,7 +26,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <ConfigProvider locale={zhCN} form={{ validateMessages: zhValidateMessages }}>
-          <BrowserRouter>
+          <BrowserRouter basename={routerBasename || undefined}>
             <App />
           </BrowserRouter>
         </ConfigProvider>
