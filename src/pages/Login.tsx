@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Form, Input, Button, Card, message, Typography } from 'antd';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -8,29 +7,25 @@ import { useMutation } from '@tanstack/react-query';
 import { ThemeLocaleControls } from '../components/ThemeLocaleControls';
 
 export function Login() {
-  const [loading, setLoading] = useState(false);
   const { token, login } = useAuth();
   const navigate = useNavigate();
   const { t } = usePreferences();
 
   const loginMutation = useMutation({
     mutationFn: (values: { username: string; password: string }) => api.auth.login(values.username, values.password),
-    onSuccess: (res) => {
-      login(res.token, res.username);
-      message.success(t('login.success'));
-      navigate('/');
-    },
-    onError: (e: unknown) => {
-      message.error(e instanceof Error ? e.message : t('login.failed'));
-    },
-    onSettled: () => setLoading(false),
   });
 
   if (token) return <Navigate to="/" replace />;
 
-  const onFinish = (values: { username: string; password: string }) => {
-    setLoading(true);
-    loginMutation.mutate(values);
+  const onFinish = async (values: { username: string; password: string }) => {
+    try {
+      const res = await loginMutation.mutateAsync(values);
+      login(res.token, res.username);
+      message.success(t('login.success'));
+      navigate('/');
+    } catch (e: unknown) {
+      message.error(e instanceof Error ? e.message : t('login.failed'));
+    }
   };
 
   return (
@@ -56,7 +51,7 @@ export function Login() {
             <Input.Password placeholder={t('login.passwordPh')} size="large" autoComplete="current-password" />
           </Form.Item>
           <Form.Item style={{ marginBottom: 0 }}>
-            <Button type="primary" htmlType="submit" block loading={loading} size="large">
+            <Button type="primary" htmlType="submit" block loading={loginMutation.isPending} size="large">
               {t('login.submit')}
             </Button>
           </Form.Item>

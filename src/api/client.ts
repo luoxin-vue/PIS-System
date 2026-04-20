@@ -26,8 +26,15 @@ export async function request<T>(
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(url, { ...init, headers });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    throw new Error(err.error || 'Request failed');
+    let msg = res.statusText || `HTTP ${res.status}`;
+    try {
+      const body = (await res.json()) as { error?: unknown; message?: unknown };
+      const piece = body?.error ?? body?.message;
+      if (piece != null && piece !== '') msg = String(piece);
+    } catch {
+      /* 非 JSON 响应时沿用 statusText */
+    }
+    throw new Error(msg || 'Request failed');
   }
   if (res.status === 204) return undefined as T;
   return res.json();
