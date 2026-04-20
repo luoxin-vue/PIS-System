@@ -6,21 +6,15 @@ import { darkTheme } from '../theme/darkTheme';
 import { lightTheme } from '../theme/lightTheme';
 import { formMessagesEn, formMessagesZh } from '../i18n/formMessages';
 import type { LocaleCode } from '../i18n';
-import { translate } from '../i18n';
+import { translate, LOCALE_STORAGE_KEY, getStoredLocale } from '../i18n';
 
 export type ThemeMode = 'dark' | 'light';
 
 const STORAGE_THEME = 'app-theme';
-const STORAGE_LOCALE = 'app-locale';
 
 function readTheme(): ThemeMode {
   const v = localStorage.getItem(STORAGE_THEME);
   return v === 'light' || v === 'dark' ? v : 'dark';
-}
-
-function readLocale(): LocaleCode {
-  const v = localStorage.getItem(STORAGE_LOCALE);
-  return v === 'en-US' || v === 'zh-CN' ? v : 'zh-CN';
 }
 
 type PreferencesContextValue = {
@@ -35,7 +29,7 @@ const PreferencesContext = createContext<PreferencesContextValue | null>(null);
 
 export function PreferencesProvider({ children }: { children: React.ReactNode }) {
   const [themeMode, setThemeModeState] = useState<ThemeMode>(readTheme);
-  const [locale, setLocaleState] = useState<LocaleCode>(readLocale);
+  const [locale, setLocaleState] = useState<LocaleCode>(() => getStoredLocale());
 
   const setThemeMode = useCallback((m: ThemeMode) => {
     setThemeModeState(m);
@@ -45,7 +39,7 @@ export function PreferencesProvider({ children }: { children: React.ReactNode })
 
   const setLocale = useCallback((l: LocaleCode) => {
     setLocaleState(l);
-    localStorage.setItem(STORAGE_LOCALE, l);
+    localStorage.setItem(LOCALE_STORAGE_KEY, l);
   }, []);
 
   useEffect(() => {

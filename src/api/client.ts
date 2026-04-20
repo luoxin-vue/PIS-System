@@ -1,3 +1,5 @@
+import { translate, getStoredLocale, getMessages } from '../i18n';
+
 // 本地通过 Vite 代理使用 `/api`；GitHub Pages 上在构建时注入 VITE_API_BASE（完整前缀，勿尾斜杠）
 const API_BASE =
   import.meta.env.VITE_API_BASE != null && String(import.meta.env.VITE_API_BASE).trim() !== ''
@@ -6,6 +8,29 @@ const API_BASE =
 
 function getToken(): string | null {
   return localStorage.getItem('token');
+}
+
+type ApiErrorBody = {
+  code?: string;
+  error?: unknown;
+  message?: unknown;
+  vars?: Record<string, string | number>;
+};
+
+/** 按当前界面语言（localStorage）翻译后端 code，否则回退英文 error 文案 */
+function formatApiError(body: ApiErrorBody | null, statusText: string, status: number): string {
+  const locale = getStoredLocale();
+  const code = body?.code?.trim();
+  const vars = body?.vars;
+  if (code) {
+    const key = `api.${code}`;
+    if (getMessages(locale)[key]) {
+      return translate(locale, key, vars);
+    }
+  }
+  const piece = body?.error ?? body?.message;
+  if (piece != null && String(piece).trim() !== '') return String(piece);
+  return statusText.trim() || `HTTP ${status}`;
 }
 
 export async function request<T>(
@@ -26,15 +51,13 @@ export async function request<T>(
   if (token) headers['Authorization'] = `Bearer ${token}`;
   const res = await fetch(url, { ...init, headers });
   if (!res.ok) {
-    let msg = res.statusText || `HTTP ${res.status}`;
+    let body: ApiErrorBody | null = null;
     try {
-      const body = (await res.json()) as { error?: unknown; message?: unknown };
-      const piece = body?.error ?? body?.message;
-      if (piece != null && piece !== '') msg = String(piece);
+      body = (await res.json()) as ApiErrorBody;
     } catch {
-      /* 非 JSON 响应时沿用 statusText */
+      /* 非 JSON */
     }
-    throw new Error(msg || 'Request failed');
+    throw new Error(formatApiError(body, res.statusText, res.status));
   }
   if (res.status === 204) return undefined as T;
   return res.json();

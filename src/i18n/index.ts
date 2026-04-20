@@ -3,6 +3,15 @@ import { messagesEnUS } from './messages/en-US';
 
 export type LocaleCode = 'zh-CN' | 'en-US';
 
+/** 与 PreferencesContext 使用同一 key，供 API 层读取当前语言 */
+export const LOCALE_STORAGE_KEY = 'app-locale';
+
+export function getStoredLocale(): LocaleCode {
+  if (typeof localStorage === 'undefined') return 'zh-CN';
+  const v = localStorage.getItem(LOCALE_STORAGE_KEY);
+  return v === 'en-US' || v === 'zh-CN' ? v : 'zh-CN';
+}
+
 const catalogs: Record<LocaleCode, Record<string, string>> = {
   'zh-CN': messagesZhCN,
   'en-US': messagesEnUS,
