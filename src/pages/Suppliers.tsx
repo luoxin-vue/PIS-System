@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Table, Button, Space, Input, Modal, Form, message, Typography } from 'antd';
+import { Table, Button, Space, Input, Modal, Popconfirm, Form, message, Typography } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { api, type Supplier } from '../api/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -51,14 +51,10 @@ export function Suppliers() {
   });
 
   const handleDelete = (id: number) => {
-    Modal.confirm({
-      title: t('suppliers.deleteConfirm'),
-      onOk: () =>
-        deleteSupplierMutation.mutate(id, {
-          onError: (e) => {
-            message.error(e instanceof Error ? e.message : t('suppliers.deleteFailed'));
-          },
-        }),
+    deleteSupplierMutation.mutate(id, {
+      onError: (e) => {
+        message.error(e instanceof Error ? e.message : t('suppliers.deleteFailed'));
+      },
     });
   };
 
@@ -104,7 +100,9 @@ export function Suppliers() {
         render: (_: unknown, r: Supplier) => (
           <Space>
             <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openEdit(r)} />
-            <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(r.id)} />
+            <Popconfirm title={t('suppliers.deleteConfirm')} onConfirm={() => handleDelete(r.id)}>
+              <Button type="link" size="small" danger icon={<DeleteOutlined />} />
+            </Popconfirm>
           </Space>
         ),
       },

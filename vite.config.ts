@@ -22,11 +22,16 @@ export default defineConfig({
   base: process.env.VITE_BASE_PATH || '/',
   plugins: [fullReloadOnSrcChange(), react()],
   resolve: {
-    alias: { '@': path.resolve(__dirname, 'src') },
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+      // rc-hiprint 依赖的旧路径，nzh 新版 exports 未暴露该子路径
+      'nzh/dist/nzh.min.js': path.resolve(__dirname, '../node_modules/nzh/dist/nzh.min.js'),
+    },
   },
   server: {
     proxy: {
       '/api': { target: 'http://localhost:3000', changeOrigin: true },
+      '/uploads': { target: 'http://localhost:3000', changeOrigin: true },
     },
   },
 });

@@ -37,6 +37,11 @@ export default function AppLayout() {
       { key: '/sales', icon: <DollarOutlined />, label: <Link to="/sales" style={linkStyle}>{t('menu.sales')}</Link> },
       { key: '/inventory', icon: <DatabaseOutlined />, label: <Link to="/inventory" style={linkStyle}>{t('menu.inventory')}</Link> },
       { key: '/reports', icon: <BarChartOutlined />, label: <Link to="/reports" style={linkStyle}>{t('menu.reports')}</Link> },
+      // {
+      //   key: '/ticket-template',
+      //   icon: <FileTextOutlined />,
+      //   label: <Link to="/ticket-template" style={linkStyle}>{t('menu.ticketTemplate')}</Link>,
+      // },
     ],
     [t]
   );

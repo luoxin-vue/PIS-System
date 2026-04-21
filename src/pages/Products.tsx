@@ -1,9 +1,21 @@
 import { useMemo, useState } from 'react';
-import { Table, Button, Space, Input, Modal, Form, message, Typography } from 'antd';
+import {
+  Table,
+  Button,
+  Space,
+  Input,
+  Modal,
+  Popconfirm,
+  Form,
+  message,
+  Typography,
+  Image,
+} from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
-import { api, type Product } from '../api/client';
+import { api, resolveAssetUrl, type Product } from '../api/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePreferences } from '../context/PreferencesContext';
+import { ImageUploadField } from '../components/ImageUploadField';
 
 export function Products() {
   const { t } = usePreferences();
@@ -15,10 +27,10 @@ export function Products() {
 
   const queryClient = useQueryClient();
 
-  const {
-    data: productsData,
-    isLoading: loading,
-  } = useQuery<{ list: Product[]; total: number }>({
+  const { data: productsData, isLoading: loading } = useQuery<{
+    list: Product[];
+    total: number;
+  }>({
     queryKey: ['products', { page, search }],
     queryFn: () => api.products.list(search || undefined, page, 20),
   });
@@ -33,6 +45,7 @@ export function Products() {
   const openCreate = () => {
     setEditing(null);
     form.resetFields();
+    form.setFieldValue('image_url', '');
     setModalOpen(true);
   };
 
@@ -43,6 +56,7 @@ export function Products() {
       brand: r.brand,
       model: r.model,
       size: r.size,
+      image_url: r.image_url || '',
       cost_price: r.cost_price,
       sale_price: r.sale_price,
       stock_quantity: r.stock_quantity,
@@ -58,24 +72,21 @@ export function Products() {
     },
   });
   const handleDelete = (id: number) => {
-    Modal.confirm({
-      title: t('products.deleteConfirm'),
-      onOk: () =>
-        deleteProductMutation.mutate(id, {
-          onError: (e) => {
-            message.error(e instanceof Error ? e.message : t('products.deleteFailed'));
-          },
-        }),
+    deleteProductMutation.mutate(id, {
+      onError: (e) => {
+        message.error(e instanceof Error ? e.message : t('products.deleteFailed'));
+      },
     });
   };
 
   const onFinish = async (values: Record<string, unknown>) => {
     try {
+      const payload = { ...values, image_url: values.image_url || '' } as Partial<Product>;
       if (editing) {
-        await api.products.update(editing.id, values as Partial<Product>);
+        await api.products.update(editing.id, payload);
         message.success(t('products.updated'));
       } else {
-        await api.products.create(values as Partial<Product>);
+        await api.products.create(payload);
         message.success(t('products.added'));
       }
       setModalOpen(false);
@@ -87,10 +98,42 @@ export function Products() {
 
   const columns = useMemo(
     () => [
-      { title: t('products.colName'), dataIndex: 'name', key: 'name', width: 120 },
-      { title: t('products.colBrand'), dataIndex: 'brand', key: 'brand', width: 100 },
-      { title: t('products.colModel'), dataIndex: 'model', key: 'model', width: 100 },
-      { title: t('products.colSize'), dataIndex: 'size', key: 'size', width: 100 },
+      {
+        title: t('products.colImage'),
+        dataIndex: 'image_url',
+        key: 'image_url',
+        width: 90,
+        render: (v?: string) =>
+          v ? (
+            <Image width={48} height={48} style={{ objectFit: 'cover', borderRadius: 6 }} src={resolveAssetUrl(v)} alt="product" />
+          ) : (
+            '-'
+          ),
+      },
+      {
+        title: t('products.colName'),
+        dataIndex: 'name',
+        key: 'name',
+        width: 120,
+      },
+      {
+        title: t('products.colBrand'),
+        dataIndex: 'brand',
+        key: 'brand',
+        width: 100,
+      },
+      {
+        title: t('products.colModel'),
+        dataIndex: 'model',
+        key: 'model',
+        width: 100,
+      },
+      {
+        title: t('products.colSize'),
+        dataIndex: 'size',
+        key: 'size',
+        width: 100,
+      },
       {
         title: t('products.colCost'),
         dataIndex: 'cost_price',
@@ -105,23 +148,44 @@ export function Products() {
         width: 80,
         render: (v: number) => t('common.currency') + Number(v).toFixed(2),
       },
-      { title: t('products.colStock'), dataIndex: 'stock_quantity', key: 'stock_quantity', width: 80 },
-      { title: t('products.colLow'), dataIndex: 'low_stock_threshold', key: 'low_stock_threshold', width: 80 },
+      {
+        title: t('products.colStock'),
+        dataIndex: 'stock_quantity',
+        key: 'stock_quantity',
+        width: 80,
+      },
+      {
+        title: t('products.colLow'),
+        dataIndex: 'low_stock_threshold',
+        key: 'low_stock_threshold',
+        width: 80,
+      },
       {
         title: t('products.colAction'),
         key: 'action',
         width: 120,
         render: (_: unknown, r: Product) => (
           <Space>
-            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openEdit(r)} />
-            <Button type="link" size="small" danger icon={<DeleteOutlined />} onClick={() => handleDelete(r.id)} />
+            <Button
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => openEdit(r)}
+            />
+            <Popconfirm title={t('products.deleteConfirm')} onConfirm={() => handleDelete(r.id)}>
+              <Button
+                type="link"
+                size="small"
+                danger
+                icon={<DeleteOutlined />}
+              />
+            </Popconfirm>
           </Space>
         ),
       },
     ],
     [t]
   );
-
   return (
     <div>
       <Typography.Title level={4}>{t('products.title')}</Typography.Title>
@@ -165,31 +229,74 @@ export function Products() {
           wrapperCol={{ xs: { span: 24 }, sm: { span: 18 } }}
           onFinish={onFinish}
         >
-          <Form.Item name="name" label={t('products.colName')} rules={[{ required: true }]}>
+          <Form.Item
+            name="name"
+            label={t('products.colName')}
+            rules={[{ required: true }]}
+          >
             <Input />
           </Form.Item>
-          <Form.Item name="brand" label={t('products.colBrand')} rules={[{ required: true }]}>
+          <Form.Item
+            name="brand"
+            label={t('products.colBrand')}
+            rules={[{ required: true }]}
+          >
             <Input />
           </Form.Item>
-          <Form.Item name="model" label={t('products.colModel')} rules={[{ required: true }]}>
+          <Form.Item
+            name="model"
+            label={t('products.colModel')}
+            rules={[{ required: true }]}
+          >
             <Input />
           </Form.Item>
-          <Form.Item name="size" label={t('products.colSize')} rules={[{ required: true }]}>
+          <Form.Item
+            name="size"
+            label={t('products.colSize')}
+            rules={[{ required: true }]}
+          >
             <Input placeholder={t('products.sizePh')} />
           </Form.Item>
-          <Form.Item name="cost_price" label={t('products.labelCost')} initialValue={0}>
+          <Form.Item
+            name="cost_price"
+            label={t('products.labelCost')}
+            initialValue={0}
+          >
             <Input type="number" step={0.01} />
           </Form.Item>
-          <Form.Item name="sale_price" label={t('products.labelPrice')} initialValue={0}>
+          <Form.Item
+            name="sale_price"
+            label={t('products.labelPrice')}
+            initialValue={0}
+          >
             <Input type="number" step={0.01} />
           </Form.Item>
-          <Form.Item name="stock_quantity" label={t('products.labelStock')} initialValue={0}>
+          <Form.Item
+            name="stock_quantity"
+            label={t('products.labelStock')}
+            initialValue={0}
+          >
             <Input type="number" />
           </Form.Item>
-          <Form.Item name="low_stock_threshold" label={t('products.labelLow')} initialValue={0}>
+          <Form.Item
+            name="low_stock_threshold"
+            label={t('products.labelLow')}
+            initialValue={0}
+          >
             <Input type="number" />
           </Form.Item>
-          <Form.Item wrapperCol={{ xs: { span: 24 }, sm: { span: 18, offset: 6 } }}>
+          <Form.Item name="image_url" label={t('products.uploadImage')}>
+            <ImageUploadField
+              uploadRequest={api.products.uploadImage}
+              resolveUrl={resolveAssetUrl}
+              buttonText={t('products.uploadButton')}
+              invalidTypeText={t('products.uploadTypeHint')}
+              uploadFailedText={t('products.uploadFailed')}
+            />
+          </Form.Item>
+          <Form.Item
+            wrapperCol={{ xs: { span: 24 }, sm: { span: 18, offset: 6 } }}
+          >
             <Button type="primary" htmlType="submit">
               {t('products.save')}
             </Button>

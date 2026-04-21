@@ -5,9 +5,20 @@ const API_BASE =
   import.meta.env.VITE_API_BASE != null && String(import.meta.env.VITE_API_BASE).trim() !== ''
     ? String(import.meta.env.VITE_API_BASE).replace(/\/$/, '')
     : '/api';
+const APP_BASE = String(import.meta.env.BASE_URL || '/').replace(/\/$/, '');
+const API_ORIGIN = API_BASE.startsWith('http://') || API_BASE.startsWith('https://') ? new URL(API_BASE).origin : '';
 
 function getToken(): string | null {
   return localStorage.getItem('token');
+}
+
+function handleAuthExpired(): void {
+  localStorage.removeItem('token');
+  localStorage.removeItem('username');
+  if (typeof window === 'undefined') return;
+  const loginPath = `${APP_BASE || ''}/login`;
+  if (window.location.pathname === loginPath) return;
+  window.location.assign(loginPath);
 }
 
 type ApiErrorBody = {
@@ -43,12 +54,12 @@ export async function request<T>(
     const search = new URLSearchParams(params).toString();
     url += (path.includes('?') ? '&' : '?') + search;
   }
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
-    ...(init.headers as Record<string, string>),
-  };
+  const headers = new Headers(init.headers as HeadersInit);
+  if (!(init.body instanceof FormData) && !headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json');
+  }
   const token = getToken();
-  if (token) headers['Authorization'] = `Bearer ${token}`;
+  if (token) headers.set('Authorization', `Bearer ${token}`);
   const res = await fetch(url, { ...init, headers });
   if (!res.ok) {
     let body: ApiErrorBody | null = null;
@@ -57,10 +68,24 @@ export async function request<T>(
     } catch {
       /* 非 JSON */
     }
+    if (body?.code === 'AUTH_TOKEN_INVALID') {
+      handleAuthExpired();
+    }
     throw new Error(formatApiError(body, res.statusText, res.status));
   }
   if (res.status === 204) return undefined as T;
   return res.json();
+}
+
+export function resolveAssetUrl(path: string | undefined | null): string {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('data:') || path.startsWith('blob:')) {
+    return path;
+  }
+  if (path.startsWith('/')) {
+    return API_ORIGIN ? `${API_ORIGIN}${path}` : path;
+  }
+  return API_ORIGIN ? `${API_ORIGIN}/${path}` : path;
 }
 
 export const api = {
@@ -77,6 +102,11 @@ export const api = {
     create: (data: Partial<Product>) => request<Product>('/products', { method: 'POST', body: JSON.stringify(data) }),
     update: (id: number, data: Partial<Product>) => request<Product>('/products/' + id, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id: number) => request<void>('/products/' + id, { method: 'DELETE' }),
+    uploadImage: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return request<{ url: string }>('/products/upload-image', { method: 'POST', body: formData });
+    },
   },
   suppliers: {
     list: (q?: string, page = 1, limit = 20) =>
@@ -138,6 +168,7 @@ export interface Product {
   brand: string;
   model: string;
   size: string;
+  image_url?: string;
   cost_price: number;
   sale_price: number;
   stock_quantity: number;

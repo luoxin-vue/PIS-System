@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Table, Button, Space, Modal, Form, Select, InputNumber, Input, message, Typography, Row, Col, Divider, theme } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-import { api, type SalesOrder, type Product } from '../api/client';
+import { PlusOutlined, PrinterOutlined } from '@ant-design/icons';
+import { api, type SalesOrder, type Product, type SalesOrderDetail } from '../api/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { usePreferences } from '../context/PreferencesContext';
+import { printSalesOrderWithLocalTemplate } from '../utils/hiprint';
 
 export function Sales() {
   const { t } = usePreferences();
@@ -44,9 +45,7 @@ export function Sales() {
     setDetailId(order.id);
   };
 
-  const { data: detail } = useQuery<
-    SalesOrder & { items?: { product_name?: string; quantity: number; unit_price: number; amount: number }[] }
-  >({
+  const { data: detail } = useQuery<SalesOrderDetail>({
     queryKey: ['salesDetail', detailId],
     queryFn: () => api.sales.get(detailId as number),
     enabled: detailId != null,
@@ -139,6 +138,17 @@ export function Sales() {
     ],
     [t]
   );
+
+  const handlePrintDetail = async () => {
+    if (!detail) return;
+    const result = await printSalesOrderWithLocalTemplate(detail);
+    if (result.ok) return;
+    if (result.reason === 'no-template') {
+      message.warning(t('ticket.printNoTemplate'));
+      return;
+    }
+    message.error(t('ticket.printTemplateInvalid'));
+  };
 
   return (
     <div>
@@ -253,7 +263,17 @@ export function Sales() {
           setDetailOpen(null);
           setDetailId(null);
         }}
-        footer={null}
+        footer={[
+          <Button key="print" icon={<PrinterOutlined />} onClick={() => void handlePrintDetail()} disabled={!detail}>
+            {t('ticket.print')}
+          </Button>,
+          <Button key="close" onClick={() => {
+            setDetailOpen(null);
+            setDetailId(null);
+          }}>
+            {t('common.close')}
+          </Button>,
+        ]}
         width={560}
       >
         {detail && (

@@ -141,3 +141,123 @@ body {
   -webkit-text-fill-color: rgba(0, 0, 0, 0.88) !important;
   caret-color: rgba(0, 0, 0, 0.88);
 }
+
+.hiprint-designer-grid {
+  display: grid;
+  grid-template-columns: minmax(200px, 240px) 1fr minmax(340px, 420px);
+  gap: 16px;
+  align-items: start;
+}
+
+.hiprint-tool-item {
+  padding: 9px 10px;
+  border: 1px dashed #8b5cf6;
+  border-radius: 6px;
+  background: rgba(139, 92, 246, 0.08);
+  color: inherit;
+  cursor: move;
+  user-select: none;
+  font-size: 13px;
+}
+
+[data-theme='light'] .hiprint-tool-item {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.hiprint-designer-page .ticket-print-area {
+  min-height: 540px;
+  border: 1px dashed rgba(148, 163, 184, 0.45);
+  border-radius: 8px;
+  padding: 12px;
+  background: #0f172a;
+  overflow: auto;
+}
+
+[data-theme='light'] .hiprint-designer-page .ticket-print-area {
+  background: rgba(241, 245, 249, 0.8);
+}
+
+/* hiprint 设计纸：深色主题下也保持白底黑字，避免表格正文不可见 */
+.hiprint-designer-page .ticket-print-area .hiprint-printPaper {
+  background: #ffffff !important;
+  color: #111111 !important;
+}
+
+.hiprint-designer-page .ticket-print-area .hiprint_rul_wrapper {
+  background: transparent !important;
+  border-top: 0 !important;
+  border-left: 0 !important;
+  z-index: 6 !important;
+  pointer-events: none !important;
+}
+
+.hiprint-designer-page .ticket-print-area .hiprint_rul_wrapper .h_img,
+.hiprint-designer-page .ticket-print-area .hiprint_rul_wrapper .v_img {
+  opacity: 1;
+}
+
+.hiprint-designer-page .ticket-print-area .hiprint-printPaper * {
+  color: inherit;
+}
+
+.hiprint-designer-page .ticket-print-area table,
+.hiprint-designer-page .ticket-print-area th,
+.hiprint-designer-page .ticket-print-area td {
+  color: #111111 !important;
+}
+
+.hiprint-designer-page .ticket-print-area td {
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.hiprint-setting-card .ant-card-body {
+  padding: 10px;
+}
+
+.hiprint-setting-panel {
+  min-height: 520px;
+  max-height: 72vh;
+  overflow: auto;
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 8px;
+}
+
+.hiprint-setting-panel,
+.hiprint-setting-panel * {
+  color: #111111 !important;
+}
+
+.hiprint-setting-panel .hiprint-option-item-label {
+  min-width: 88px;
+}
+
+.hiprint-setting-panel .hiprint-option-item-field input,
+.hiprint-setting-panel .hiprint-option-item-field select,
+.hiprint-setting-panel .hiprint-option-item-field textarea {
+  color: #111111 !important;
+}
+
+/* 票据模板：打印时只保留预览区 */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .ticket-print-area,
+  .ticket-print-area * {
+    visibility: visible;
+  }
+  .ticket-print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border: none !important;
+    background: #fff !important;
+    padding: 0 !important;
+    min-height: auto !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
