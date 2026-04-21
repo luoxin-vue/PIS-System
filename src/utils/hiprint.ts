@@ -80,4 +80,3 @@ export async function printSalesOrderWithLocalTemplate(
   template.print(buildPrintData(order));
   return { ok: true };
 }
-

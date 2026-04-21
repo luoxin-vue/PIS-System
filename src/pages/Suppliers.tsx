@@ -15,10 +15,7 @@ export function Suppliers() {
 
   const queryClient = useQueryClient();
 
-  const {
-    data: suppliersData,
-    isLoading: loading,
-  } = useQuery<{ list: Supplier[]; total: number }>({
+  const { data: suppliersData, isLoading: loading } = useQuery<{ list: Supplier[]; total: number }>({
     queryKey: ['suppliers', { page, search }],
     queryFn: () => api.suppliers.list(search || undefined, page, 20),
   });
@@ -67,7 +64,8 @@ export function Suppliers() {
   });
 
   const updateSupplierMutation = useMutation({
-    mutationFn: (params: { id: number; values: Record<string, string> }) => api.suppliers.update(params.id, params.values),
+    mutationFn: (params: { id: number; values: Record<string, string> }) =>
+      api.suppliers.update(params.id, params.values),
     onSuccess: () => {
       message.success(t('suppliers.updated'));
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });

@@ -35,15 +35,13 @@ export function Reports() {
   });
 
   const data =
-    (summaryData as
-      | {
-          purchase_total: number;
-          purchase_count: number;
-          sales_total: number;
-          sales_count: number;
-          gross_profit: number;
-        }
-      | null) ?? null;
+    (summaryData as {
+      purchase_total: number;
+      purchase_count: number;
+      sales_total: number;
+      sales_count: number;
+      gross_profit: number;
+    } | null) ?? null;
   const trend = trendData?.list ?? [];
 
   const chartOption = useMemo(

@@ -11,10 +11,7 @@ export function Inventory() {
   const [logsPage, setLogsPage] = useState(1);
   const [activeTab, setActiveTab] = useState<'stock' | 'logs'>('stock');
 
-  const {
-    data: inventoryData,
-    isLoading: loading,
-  } = useQuery<{ list: Product[]; total: number }>({
+  const { data: inventoryData, isLoading: loading } = useQuery<{ list: Product[]; total: number }>({
     queryKey: ['inventory', { page, search }],
     queryFn: () => api.inventory.list(search || undefined, page, 50),
   });
@@ -22,10 +19,7 @@ export function Inventory() {
   const list: Product[] = inventoryData?.list ?? [];
   const total = inventoryData?.total ?? 0;
 
-  const {
-    data: logsData,
-    isLoading: logsLoading,
-  } = useQuery<{ list: InventoryLog[]; total: number }>({
+  const { data: logsData, isLoading: logsLoading } = useQuery<{ list: InventoryLog[]; total: number }>({
     queryKey: ['inventoryLogs', { page: logsPage }],
     queryFn: () => api.inventory.logs(undefined, logsPage, 30),
     enabled: activeTab === 'logs',

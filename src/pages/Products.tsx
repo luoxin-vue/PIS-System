@@ -1,16 +1,5 @@
 import { useMemo, useState } from 'react';
-import {
-  Table,
-  Button,
-  Space,
-  Input,
-  Modal,
-  Popconfirm,
-  Form,
-  message,
-  Typography,
-  Image,
-} from 'antd';
+import { Table, Button, Space, Input, Modal, Popconfirm, Form, message, Typography, Image } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import { api, resolveAssetUrl, type Product } from '../api/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -105,7 +94,13 @@ export function Products() {
         width: 90,
         render: (v?: string) =>
           v ? (
-            <Image width={48} height={48} style={{ objectFit: 'cover', borderRadius: 6 }} src={resolveAssetUrl(v)} alt="product" />
+            <Image
+              width={48}
+              height={48}
+              style={{ objectFit: 'cover', borderRadius: 6 }}
+              src={resolveAssetUrl(v)}
+              alt="product"
+            />
           ) : (
             '-'
           ),
@@ -166,19 +161,9 @@ export function Products() {
         width: 120,
         render: (_: unknown, r: Product) => (
           <Space>
-            <Button
-              type="link"
-              size="small"
-              icon={<EditOutlined />}
-              onClick={() => openEdit(r)}
-            />
+            <Button type="link" size="small" icon={<EditOutlined />} onClick={() => openEdit(r)} />
             <Popconfirm title={t('products.deleteConfirm')} onConfirm={() => handleDelete(r.id)}>
-              <Button
-                type="link"
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-              />
+              <Button type="link" size="small" danger icon={<DeleteOutlined />} />
             </Popconfirm>
           </Space>
         ),
@@ -229,60 +214,28 @@ export function Products() {
           wrapperCol={{ xs: { span: 24 }, sm: { span: 18 } }}
           onFinish={onFinish}
         >
-          <Form.Item
-            name="name"
-            label={t('products.colName')}
-            rules={[{ required: true }]}
-          >
+          <Form.Item name="name" label={t('products.colName')} rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item
-            name="brand"
-            label={t('products.colBrand')}
-            rules={[{ required: true }]}
-          >
+          <Form.Item name="brand" label={t('products.colBrand')} rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item
-            name="model"
-            label={t('products.colModel')}
-            rules={[{ required: true }]}
-          >
+          <Form.Item name="model" label={t('products.colModel')} rules={[{ required: true }]}>
             <Input />
           </Form.Item>
-          <Form.Item
-            name="size"
-            label={t('products.colSize')}
-            rules={[{ required: true }]}
-          >
+          <Form.Item name="size" label={t('products.colSize')} rules={[{ required: true }]}>
             <Input placeholder={t('products.sizePh')} />
           </Form.Item>
-          <Form.Item
-            name="cost_price"
-            label={t('products.labelCost')}
-            initialValue={0}
-          >
+          <Form.Item name="cost_price" label={t('products.labelCost')} initialValue={0}>
             <Input type="number" step={0.01} />
           </Form.Item>
-          <Form.Item
-            name="sale_price"
-            label={t('products.labelPrice')}
-            initialValue={0}
-          >
+          <Form.Item name="sale_price" label={t('products.labelPrice')} initialValue={0}>
             <Input type="number" step={0.01} />
           </Form.Item>
-          <Form.Item
-            name="stock_quantity"
-            label={t('products.labelStock')}
-            initialValue={0}
-          >
+          <Form.Item name="stock_quantity" label={t('products.labelStock')} initialValue={0}>
             <Input type="number" />
           </Form.Item>
-          <Form.Item
-            name="low_stock_threshold"
-            label={t('products.labelLow')}
-            initialValue={0}
-          >
+          <Form.Item name="low_stock_threshold" label={t('products.labelLow')} initialValue={0}>
             <Input type="number" />
           </Form.Item>
           <Form.Item name="image_url" label={t('products.uploadImage')}>
@@ -294,9 +247,7 @@ export function Products() {
               uploadFailedText={t('products.uploadFailed')}
             />
           </Form.Item>
-          <Form.Item
-            wrapperCol={{ xs: { span: 24 }, sm: { span: 18, offset: 6 } }}
-          >
+          <Form.Item wrapperCol={{ xs: { span: 24 }, sm: { span: 18, offset: 6 } }}>
             <Button type="primary" htmlType="submit">
               {t('products.save')}
             </Button>

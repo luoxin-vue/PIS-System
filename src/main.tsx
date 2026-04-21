@@ -21,5 +21,6 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         </PreferencesProvider>
       </QueryClientProvider>
     </ErrorBoundary>
-  // </React.StrictMode>
+    //{' '}
+  </React.StrictMode>
 );

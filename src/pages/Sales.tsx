@@ -1,5 +1,20 @@
 import { useMemo, useState } from 'react';
-import { Table, Button, Space, Modal, Form, Select, InputNumber, Input, message, Typography, Row, Col, Divider, theme } from 'antd';
+import {
+  Table,
+  Button,
+  Space,
+  Modal,
+  Form,
+  Select,
+  InputNumber,
+  Input,
+  message,
+  Typography,
+  Row,
+  Col,
+  Divider,
+  theme,
+} from 'antd';
 import { PlusOutlined, PrinterOutlined } from '@ant-design/icons';
 import { api, type SalesOrder, type Product, type SalesOrderDetail } from '../api/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -17,10 +32,7 @@ export function Sales() {
 
   const queryClient = useQueryClient();
 
-  const {
-    data: salesData,
-    isLoading: loading,
-  } = useQuery<{ list: SalesOrder[]; total: number }>({
+  const { data: salesData, isLoading: loading } = useQuery<{ list: SalesOrder[]; total: number }>({
     queryKey: ['sales', { page }],
     queryFn: () => api.sales.list(page, 20),
   });
@@ -204,7 +216,12 @@ export function Sales() {
                   {fields.map(({ key, name, ...rest }) => (
                     <Row key={key} gutter={8} align="middle" style={{ marginBottom: 8 }}>
                       <Col span={12}>
-                        <Form.Item {...rest} name={[name, 'product_id']} rules={[{ required: true }]} style={{ marginBottom: 0 }}>
+                        <Form.Item
+                          {...rest}
+                          name={[name, 'product_id']}
+                          rules={[{ required: true }]}
+                          style={{ marginBottom: 0 }}
+                        >
                           <Select
                             placeholder={t('sales.phProduct')}
                             showSearch
@@ -221,12 +238,22 @@ export function Sales() {
                         </Form.Item>
                       </Col>
                       <Col span={4}>
-                        <Form.Item {...rest} name={[name, 'quantity']} rules={[{ required: true }]} style={{ marginBottom: 0 }}>
+                        <Form.Item
+                          {...rest}
+                          name={[name, 'quantity']}
+                          rules={[{ required: true }]}
+                          style={{ marginBottom: 0 }}
+                        >
                           <InputNumber min={1} style={{ width: '100%' }} />
                         </Form.Item>
                       </Col>
                       <Col span={6}>
-                        <Form.Item {...rest} name={[name, 'unit_price']} rules={[{ required: true }]} style={{ marginBottom: 0 }}>
+                        <Form.Item
+                          {...rest}
+                          name={[name, 'unit_price']}
+                          rules={[{ required: true }]}
+                          style={{ marginBottom: 0 }}
+                        >
                           <InputNumber min={0} step={0.01} style={{ width: '100%' }} />
                         </Form.Item>
                       </Col>
@@ -267,10 +294,13 @@ export function Sales() {
           <Button key="print" icon={<PrinterOutlined />} onClick={() => void handlePrintDetail()} disabled={!detail}>
             {t('ticket.print')}
           </Button>,
-          <Button key="close" onClick={() => {
-            setDetailOpen(null);
-            setDetailId(null);
-          }}>
+          <Button
+            key="close"
+            onClick={() => {
+              setDetailOpen(null);
+              setDetailId(null);
+            }}
+          >
             {t('common.close')}
           </Button>,
         ]}
@@ -303,7 +333,13 @@ export function Sales() {
                 {detail.note}
               </p>
             )}
-            <Table size="small" rowKey="id" dataSource={detail.items || []} columns={detailColumns} pagination={false} />
+            <Table
+              size="small"
+              rowKey="id"
+              dataSource={detail.items || []}
+              columns={detailColumns}
+              pagination={false}
+            />
           </div>
         )}
       </Modal>

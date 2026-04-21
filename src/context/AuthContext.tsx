@@ -29,11 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUsername(null);
   }, []);
 
-  return (
-    <AuthContext.Provider value={{ token, username, login, logout, isReady }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={{ token, username, login, logout, isReady }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

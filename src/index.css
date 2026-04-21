@@ -4,7 +4,13 @@
 
 body {
   margin: 0;
-  font-family: 'DM Sans', 'PingFang SC', 'Microsoft YaHei', system-ui, -apple-system, sans-serif;
+  font-family:
+    'DM Sans',
+    'PingFang SC',
+    'Microsoft YaHei',
+    system-ui,
+    -apple-system,
+    sans-serif;
   background: #0b0f14;
   color: rgba(255, 255, 255, 0.88);
 }
@@ -96,13 +102,17 @@ body {
   width: 100%;
   max-width: 420px;
   border: 1px solid #2a3344;
-  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  box-shadow:
+    0 24px 48px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
   backdrop-filter: blur(8px);
 }
 
 [data-theme='light'] .login-card.ant-card {
   border: 1px solid #e2e8f0;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, 0.08),
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset;
 }
 
 /* 登录页：密码框与普通输入框视觉统一（affix 容器与内层 input 同底） */

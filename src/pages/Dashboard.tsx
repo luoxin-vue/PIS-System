@@ -3,7 +3,13 @@ import { Card, Row, Col, List, Typography, Spin, Statistic, message } from 'antd
 import { Link } from 'react-router-dom';
 import { api, type Product } from '../api/client';
 import { useQuery } from '@tanstack/react-query';
-import { WarningOutlined, InboxOutlined, ShoppingCartOutlined, DollarOutlined, DatabaseOutlined } from '@ant-design/icons';
+import {
+  WarningOutlined,
+  InboxOutlined,
+  ShoppingCartOutlined,
+  DollarOutlined,
+  DatabaseOutlined,
+} from '@ant-design/icons';
 import ReactECharts from 'echarts-for-react';
 import { getChartTheme } from '../theme/chartTokens';
 import { usePreferences } from '../context/PreferencesContext';
@@ -18,7 +24,11 @@ export function Dashboard() {
     queryFn: () => api.inventory.alerts(),
   });
 
-  const { data: dashData, error: dashError, isLoading: dashLoading } = useQuery<{
+  const {
+    data: dashData,
+    error: dashError,
+    isLoading: dashLoading,
+  } = useQuery<{
     products_count: number;
     low_stock_count: number;
     purchase_today_total: number;

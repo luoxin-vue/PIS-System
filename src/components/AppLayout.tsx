@@ -26,17 +26,69 @@ export default function AppLayout() {
 
   const menuItems = useMemo(
     () => [
-      { key: '/', icon: <DashboardOutlined />, label: <Link to="/" style={linkStyle}>{t('menu.dashboard')}</Link> },
-      { key: '/products', icon: <InboxOutlined />, label: <Link to="/products" style={linkStyle}>{t('menu.products')}</Link> },
-      { key: '/suppliers', icon: <ShopOutlined />, label: <Link to="/suppliers" style={linkStyle}>{t('menu.suppliers')}</Link> },
+      {
+        key: '/',
+        icon: <DashboardOutlined />,
+        label: (
+          <Link to="/" style={linkStyle}>
+            {t('menu.dashboard')}
+          </Link>
+        ),
+      },
+      {
+        key: '/products',
+        icon: <InboxOutlined />,
+        label: (
+          <Link to="/products" style={linkStyle}>
+            {t('menu.products')}
+          </Link>
+        ),
+      },
+      {
+        key: '/suppliers',
+        icon: <ShopOutlined />,
+        label: (
+          <Link to="/suppliers" style={linkStyle}>
+            {t('menu.suppliers')}
+          </Link>
+        ),
+      },
       {
         key: '/purchases',
         icon: <ShoppingCartOutlined />,
-        label: <Link to="/purchases" style={linkStyle}>{t('menu.purchases')}</Link>,
+        label: (
+          <Link to="/purchases" style={linkStyle}>
+            {t('menu.purchases')}
+          </Link>
+        ),
       },
-      { key: '/sales', icon: <DollarOutlined />, label: <Link to="/sales" style={linkStyle}>{t('menu.sales')}</Link> },
-      { key: '/inventory', icon: <DatabaseOutlined />, label: <Link to="/inventory" style={linkStyle}>{t('menu.inventory')}</Link> },
-      { key: '/reports', icon: <BarChartOutlined />, label: <Link to="/reports" style={linkStyle}>{t('menu.reports')}</Link> },
+      {
+        key: '/sales',
+        icon: <DollarOutlined />,
+        label: (
+          <Link to="/sales" style={linkStyle}>
+            {t('menu.sales')}
+          </Link>
+        ),
+      },
+      {
+        key: '/inventory',
+        icon: <DatabaseOutlined />,
+        label: (
+          <Link to="/inventory" style={linkStyle}>
+            {t('menu.inventory')}
+          </Link>
+        ),
+      },
+      {
+        key: '/reports',
+        icon: <BarChartOutlined />,
+        label: (
+          <Link to="/reports" style={linkStyle}>
+            {t('menu.reports')}
+          </Link>
+        ),
+      },
       // {
       //   key: '/ticket-template',
       //   icon: <FileTextOutlined />,

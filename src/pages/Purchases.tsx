@@ -1,5 +1,20 @@
 import { useMemo, useState } from 'react';
-import { Table, Button, Space, Modal, Form, Select, InputNumber, Input, message, Typography, Row, Col, Divider, theme } from 'antd';
+import {
+  Table,
+  Button,
+  Space,
+  Modal,
+  Form,
+  Select,
+  InputNumber,
+  Input,
+  message,
+  Typography,
+  Row,
+  Col,
+  Divider,
+  theme,
+} from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { api, type PurchaseOrder, type Product, type Supplier } from '../api/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -16,10 +31,7 @@ export function Purchases() {
 
   const queryClient = useQueryClient();
 
-  const {
-    data: purchasesData,
-    isLoading: loading,
-  } = useQuery<{ list: PurchaseOrder[]; total: number }>({
+  const { data: purchasesData, isLoading: loading } = useQuery<{ list: PurchaseOrder[]; total: number }>({
     queryKey: ['purchases', { page }],
     queryFn: () => api.purchases.list(page, 20),
   });
@@ -301,7 +313,13 @@ export function Purchases() {
                 {detail.note}
               </p>
             )}
-            <Table size="small" rowKey="id" dataSource={detail.items || []} columns={detailColumns} pagination={false} />
+            <Table
+              size="small"
+              rowKey="id"
+              dataSource={detail.items || []}
+              columns={detailColumns}
+              pagination={false}
+            />
           </div>
         )}
       </Modal>
